@@ -3,16 +3,16 @@
 #
 
 import nltk
+from nltk.corpus import stopwords
 import codecs
 import pandas as pd
+import random
 import matplotlib.pyplot as plt
 import matplotlib
-import random
 matplotlib.style.use('ggplot')
-
-# Text location.
-text_path = "/Users/mauricediesendruck/Google Drive/fitb/"
-filename = "eol.txt"
+from collections import Counter
+from sklearn.feature_extraction.text import CountVectorizer
+from __future__ import division
 
 def load(text_path, filename):
     # Set up raw text.
@@ -41,7 +41,7 @@ def shingle(data_list, w):
     sh = [data_list[i:i+w] for i in range(num_items - w + 1)]
     return sh
 
-def test_human(num_context_sents):
+def test_human(sents, num_context_sents):
     # Test a human.
     context = num_context_sents
     i = random.randint(context, len(sents)-context)  # Choose a center.
@@ -60,9 +60,26 @@ def test_human(num_context_sents):
     print
 
 def run():
+    # Text location.
+    text_path = '/Users/mauricediesendruck/Google Drive/fitb/'
+    filename = 'prince.txt'
+    filename = 'eol.txt'
+    filename = 'meta.txt'
+
     # Create test text.
     text = clean(load(text_path, filename))
     t = head(text)
+
+    # Compute text stats.
+    stop_words = set(stopwords.words('english'))
+    stop_words.update(['.', ',', '"', "'", "''", '``', '?', '!', ':', ';', '(', ')', '[', ']', '{', '}'])
+    words = nltk.word_tokenize(text.lower())
+    words = [w for w in words if w not in stop_words]
+    counts = Counter(words).most_common()
+    frequencies = [c for (_,c) in counts]
+    # Below format... {a: b} means there are b unique words which occur a times.
+    freq_freq = Counter(frequencies)
+    print dict(freq_freq)[1]/len(counts)
 
     # Make big list of word w-shingles, and POS w-shingles.
     # Do each on a sentence-by-sentence basis.
@@ -71,20 +88,20 @@ def run():
     poslist_by_sent = [wordlist_to_postags(w) for w in wordlist_by_sent]
 
     # Make word shingles.
+    word_shingle_size = 5
     word_shingles = []
     for wordlist in wordlist_by_sent:
-        word_shingles.append(shingle(wordlist, 5))
+        word_shingles.append(shingle(wordlist, word_shingle_size))
 
     # Make POS shingles.
+    pos_shingle_size = 5
     pos_shingles = []
     for poslist in poslist_by_sent:
-        pos_shingles.append(shingle(poslist, 5))
+        pos_shingles.append(shingle(poslist, pos_shingle_size))
 
     # Test a human
-    test_human(1)
-
-
-
+    num_context_sents = 1
+    test_human(sents, num_context_sents)
 
 run()
 
