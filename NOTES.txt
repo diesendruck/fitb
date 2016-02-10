@@ -1,0 +1,17 @@
+**********POS PREDICTION**********:
+
+- Single sentence contains relevant info.
+
+- Match shingle sequence: e.g. "she ___ loudly" is noun-___-adverb, so would match all other shingles of that form, most of which have verb in the middle.
+
+**********WORD PREDICTION**********:
+
+- Context from previous (and rarely, next sentence) may give info about who is acting, and how they're feeling. e.g. "he remained close to his ___ now. Unlike him, she was"
+
+- Idioms: e.g. "reply ___ a question" is likely "reply to a question", and "it's quarter ___ seven" is likely "it's quarter past/to seven". These can be computed by Jaccard similarity on the set of words, maybe include ordering, and some semantic distance for words in between that don't match. e.g. "any of those things" vs "any of these things".
+
+- Entities (esp. people) have mood, and mood informs language of action/emotion.
+
+- Know the cast of a story, and associated details for each. e.g. Gregor, his sister, the family that lives nearby. Meaningful nouns/entities.
+ 
+- Nouns admit preferential/accepted verbs. e.g. the noun "room" admits "enter", "clean", "rearrange", but not "slurp" or "tax". 
