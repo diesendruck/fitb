@@ -7,7 +7,10 @@ from nltk.corpus import stopwords
 import codecs
 import pandas as pd
 import random
+import numpy as np
 import matplotlib.pyplot as plt
+import plotly.plotly as py
+import plotly.graph_objs as go
 from collections import Counter
 from sklearn.feature_extraction.text import CountVectorizer
 from __future__ import division
@@ -72,6 +75,91 @@ def compute_text_stats(text):
     print "Percentage of unique words occuring only once:"
     return dict(freq_freq)[1]/len(counts)
 
+def is_match(sh, q):
+    # Given two lists of strings, checks if a subset of those strings is equal.
+    if (sh[0]==q[0] and sh[2]==q[2]):  # This test is a 3-shingle PREFERENCE.
+        return True
+    else:
+        return False
+
+def predict_pos(pos_sh, word_sh, i, verbose=True):
+    # Given lists of pos and word shingles, and random query i; predict POS.
+    without_i = pos_sh[:i]+pos_sh[i+1:]
+    # NOTE: This is under the 3-tuple/middle-missing regime.
+    query = pos_sh[i]
+    true_POS = pos_sh[i][1]
+    context_matches = [sh for sh in without_i if is_match(sh, query)]
+    all_candidates = [c for (_,c,_) in context_matches]
+    n = len(all_candidates)
+    f = Counter(all_candidates).most_common()
+    if len(f)>=2:
+        top_guess, top_score = f[0][0], f[0][1]/n
+        second_guess, second_score = f[1][0], f[1][1]/n
+        delta = top_score - second_score
+    elif len(f)==1:
+        top_guess, top_score = f[0][0], f[0][1]/n
+        second_guess, second_score = [0] * 2
+        delta = 0
+    else:
+        top_guess, top_score, second_guess, second_score, delta = [0] * 5
+    context_width = 15
+    if verbose==True:
+        print '\n ~~~~ SUMMARY ~~~~ '
+        print 'WORD TUPLE: {}'.format(word_sh[i])
+        print 'POS TUPLE: {}'.format(pos_sh[i])
+        print '\nCONTEXT:'
+        print ' '.join([s for (_,_,s) in word_sh[i-context_width:i+context_width]])
+        print '\nMATCH FREQUENCIES: n={}, {}'.format(n, f[:10])
+        print '\nTRUTH: {}'.format(true_POS)
+        print '\nTOP TWO GUESSES: {}, {} ({}, {}, delta={})'.format(
+            top_guess, second_guess, round(top_score, 3), round(second_score, 3),
+            round(delta, 3))
+    return top_guess, second_guess, delta, true_POS
+
+def test_POS_prediction(num_trials):
+    results = [[], [], []]
+    for d in np.arange(0, 1, 0.1):  # Vary delta threshold.
+        num_guesses = 0
+        num_correct = 0
+        for _ in range(num_trials):  # Do many trials for that delta.
+            ind = random.randrange(len(pos_sh))
+            q = pos_sh[ind]
+            p1, p2, delta, truth = predict_pos(pos_sh, word_sh, ind, verbose=False)
+            if delta > d:  # Only guess if delta is big enough.
+                num_guesses += 1
+                if p1 == truth:
+                    num_correct += 1
+        if num_guesses >= 1:
+            precision = num_correct/num_guesses
+        print 'DELTA VALUE: {}; PRECISION: {}; GUESS PROPORTION: {}/{}'.format(
+            round(d, 3), round(precision, 3), num_guesses, num_trials)
+        results[0].append(d)
+        results[1].append(precision)
+        results[2].append(num_guesses)
+    return results
+
+def plot_POS_pred_results(results):
+    trace1 = go.Scatter(
+        x=results[0],
+        y=results[1],
+        mode='markers',
+        marker=dict(size=[n/10 for n in results[2]])
+    )
+    trace2 = go.Scatter(
+        x=results[0],
+        y=results[1],
+        hoverinfo='none'
+    )
+    data = [trace1, trace2]
+    layout = go.Layout(
+        title='POS Prediction Precision (3-tuple)',
+        xaxis=dict(title='Delta Threshold'),
+        yaxis=dict(title='Precision'),
+        showlegend=False
+    )
+    fig = go.Figure(data=data, layout=layout)
+    py.plot(fig, filename='pos-prediction-delta-threshold')
+
 def run():
     # Text location.
     text_path = '/Users/mauricediesendruck/Google Drive/fitb/'
@@ -106,41 +194,13 @@ def run():
     pos_sh = [sh for sent_list in pos_shingles for sh in sent_list]
 
     # Predict POS.
-    i = random.randrange(len(pos_sh))
-    q = pos_sh[i]
-    predict_pos(pos_sh, word_sh, i)
+    num_trials = 1000
+    results = test_POS_prediction(num_trials)
+    pos_prediction_results = plot_POS_pred_results(results)
 
     # Test a human
     num_context_sents = 1
     test_human(sents, num_context_sents)
-
-def is_match(sh, q):
-    # Given two lists of strings, checks if a subset of those strings is equal.
-    if (sh[0]==q[0] and sh[2]==q[2]):  # This test is a 3-shingle PREFERENCE.
-        return True
-    else:
-        return False
-
-def predict_pos(pos_sh, word_sh, i):
-    # Given lists of pos and word shingles, and random query i; predict POS.
-    without_i = pos_sh[:i]+pos_sh[i+1:]
-    context_matches = [sh for sh in without_i if is_match(sh, q)]
-    all_candidates = [c for (_,c,_) in context_matches]
-    n = len(all_candidates)
-    f = Counter(all_candidates).most_common()
-    best_guess = f[0][0]
-    delta = f[0][1]/n - f[1][1]/n
-    print word_sh[i], pos_sh[i]
-    print ' '.join([fi for (fi,_,_) in word_sh[i-10:i+10]])
-    print n
-    print f[:10]
-    print best_guess
-    print delta
-    return pos_sh[i][1]
-    # Inspect a 3-shingle.
-    #insp = ['PRP$', 'JJR', 'IN']
-    #print [(ind,val) for ind,val in enumerate(pos_sh) if val==insp]
-    #print word_sh[19604-6:19604+6]
 
 run()
 
