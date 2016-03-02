@@ -138,7 +138,7 @@ def test_POS_prediction(num_trials):
         results[2].append(num_guesses)
     return results
 
-def plot_POS_pred_results(results):
+def plot_POS_pred_results(results, tuple_size):
     trace1 = go.Scatter(
         x=results[0],
         y=results[1],
@@ -152,7 +152,7 @@ def plot_POS_pred_results(results):
     )
     data = [trace1, trace2]
     layout = go.Layout(
-        title='POS Prediction Precision (3-tuple)',
+        title='POS Prediction Precision ({}-tuple)'.format(tuple_size),
         xaxis=dict(title='Delta Threshold'),
         yaxis=dict(title='Precision'),
         showlegend=False
@@ -196,14 +196,13 @@ def run():
     # Predict POS.
     num_trials = 1000
     results = test_POS_prediction(num_trials)
-    pos_prediction_results = plot_POS_pred_results(results)
+    pos_prediction_results = plot_POS_pred_results(results, pos_shingle_size)
 
     # Test a human
     num_context_sents = 1
     test_human(sents, num_context_sents)
 
 run()
-
 
 
 
