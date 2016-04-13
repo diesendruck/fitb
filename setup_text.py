@@ -219,7 +219,7 @@ def tag_to_bucket(tag, pos_buckets):
     return b
 
 
-def run_text(filename):
+def run_text(filename, shingle_size):
     start = timeit()
 
     # Text location.
@@ -237,17 +237,15 @@ def run_text(filename):
     poslist_by_sent = [wordlist_to_postags(w) for w in wordlist_by_sent]
 
     # Make word shingles.
-    word_shingle_size = 3
     word_shingles = []
     for wordlist in wordlist_by_sent:
-        word_shingles.append(shingle(wordlist, word_shingle_size))
+        word_shingles.append(shingle(wordlist, shingle_size))
     word_sh = [sh for sent_list in word_shingles for sh in sent_list]
 
     # Make POS shingles.
-    pos_shingle_size = 3
     pos_shingles = []
     for poslist in poslist_by_sent:
-        pos_shingles.append(shingle(poslist, pos_shingle_size))
+        pos_shingles.append(shingle(poslist, shingle_size))
     pos_sh = [sh for sent_list in pos_shingles for sh in sent_list]
 
     print timeit() - start
@@ -261,7 +259,7 @@ def run_text(filename):
 
     results_b = test_POS_prediction(num_trials, pos_sh, word_sh, verbose=False,
                                     do_buckets=True)
-    plot_POS_pred_results(results, results_b, pos_shingle_size, num_trials,
+    plot_POS_pred_results(results, results_b, shingle_size, num_trials,
                           filename)
 
     print timeit() - start
@@ -270,6 +268,6 @@ def run_text(filename):
     # num_context_sents = 1
     # test_human(sents, num_context_sents)
 
-# run_text('prince.txt')
-run_text('eol.txt')
-# run_text('meta.txt')
+# run_text('prince.txt', shingle_size=5)
+run_text('eol.txt', shingle_size=3)
+# run_text('meta.txt', shingle_size=5)
