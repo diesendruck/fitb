@@ -1,0 +1,37 @@
+Index,Tag,Name,Bucket
+1,CC,Coordinating conjunction,CC
+2,CD,Cardinal number,CD
+3,DT,Determiner,DT
+4,EX,Existential there,EX
+5,FW,Foreign word,FW
+6,IN,Preposition or subordinating conjunction,IN
+7,JJ,Adjective,J*
+8,JJR,"Adjective, comparative",J*
+9,JJS,"Adjective, superlative",J*
+10,LS,List item marker,LS
+11,MD,Modal,MD
+12,NN,"Noun, singular or mass",N*
+13,NNS,"Noun, plural",N*
+14,NNP,"Proper noun, singular",N*
+15,NNPS,"Proper noun, plural",N*
+16,PDT,Predeterminer,PDT
+17,POS,Possessive ending,POS
+18,PRP,Personal pronoun,PRP*
+19,PRP$,Possessive pronoun,PRP*
+20,RB,Adverb,RB*
+21,RBR,"Adverb, comparative",RB*
+22,RBS,"Adverb, superlative",RB*
+23,RP,Particle,RP
+24,SYM,Symbol,SYM
+25,TO,to,TO
+26,UH,Interjection,UH
+27,VB,"Verb, base form",VB*
+28,VBD,"Verb, past tense",VB*
+29,VBG,"Verb, gerund or present participle",VB*
+30,VBN,"Verb, past participle",VB*
+31,VBP,"Verb, non-3rd person singular present",VB*
+32,VBZ,"Verb, 3rd person singular present",VB*
+33,WDT,Wh-determiner,WDT
+34,WP,Wh-pronoun,WP
+35,WP$,Possessive wh-pronoun,WP$
+36,WRB,Wh-adverb,WRB
