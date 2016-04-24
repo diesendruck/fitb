@@ -6,6 +6,7 @@ from __future__ import division
 import os
 import nltk
 from nltk.corpus import stopwords
+from nltk.tokenize import RegexpTokenizer
 import codecs
 import pandas as pd
 import random
@@ -13,7 +14,7 @@ import numpy as np
 import plotly.plotly as py
 import plotly.graph_objs as go
 from collections import Counter
-from timeit import timeit
+from time import time
 
 
 def load(text_path, filename):
@@ -154,7 +155,9 @@ def test_POS_prediction(num_trials, pos_sh, word_sh, verbose, do_buckets):
     # Load bucket data.
     pos_buckets = pd.read_csv(os.getcwd()+'/pos_buckets.csv')
 
-    for d in np.arange(0, 1, 0.1):  # Vary delta threshold.
+    # TODO: RESET THIS TO THE FULL RANGE.
+    # for d in np.arange(0, 1, 0.1):  # Vary delta threshold.
+    for d in [0]:
         num_guesses = 0
         num_correct = 0
         for _ in range(num_trials):  # Do many trials for that delta.
@@ -206,7 +209,7 @@ def plot_POS_pred_results(results, results_b, tuple_size, num_trials, name):
         showlegend=False
     )
     fig = go.Figure(data=data, layout=layout)
-    py.plot(fig, filename='pos-prediction-delta-threshold'+name+tuple_size)
+    py.plot(fig, filename='pos-prediction-delta-threshold'+name+str(tuple_size))
 
 
 def tag_to_bucket(tag, pos_buckets):
@@ -219,8 +222,8 @@ def tag_to_bucket(tag, pos_buckets):
     return b
 
 
-def run_text(filename, shingle_size):
-    start = timeit()
+def run_text(filename, num_trials, shingle_size):
+    start = time()
 
     # Text location.
     text_path = '/Users/mauricediesendruck/Google Drive/fitb/'
@@ -233,7 +236,8 @@ def run_text(filename, shingle_size):
 
     # Make lists of word and POS w-shingles, each on a per-sentence basis.
     sents = nltk.sent_tokenize(text)
-    wordlist_by_sent = [nltk.word_tokenize(s) for s in sents]
+    tokenizer = RegexpTokenizer(r'\w+')
+    wordlist_by_sent = [tokenizer.tokenize(s) for s in sents]
     poslist_by_sent = [wordlist_to_postags(w) for w in wordlist_by_sent]
 
     # Make word shingles.
@@ -248,26 +252,28 @@ def run_text(filename, shingle_size):
         pos_shingles.append(shingle(poslist, shingle_size))
     pos_sh = [sh for sent_list in pos_shingles for sh in sent_list]
 
-    print timeit() - start
+    print time() - start
 
     # Predict POS.
-    num_trials = 500
     results = test_POS_prediction(num_trials, pos_sh, word_sh, verbose=False,
                                   do_buckets=False)
 
-    print timeit() - start
+    print time() - start
 
     results_b = test_POS_prediction(num_trials, pos_sh, word_sh, verbose=False,
                                     do_buckets=True)
     plot_POS_pred_results(results, results_b, shingle_size, num_trials,
                           filename)
 
-    print timeit() - start
+    print time() - start
 
     # Test a human
     # num_context_sents = 1
     # test_human(sents, num_context_sents)
 
-# run_text('prince.txt', shingle_size=5)
-run_text('eol.txt', shingle_size=3)
-# run_text('meta.txt', shingle_size=5)
+
+# run_text('prince.txt', num_trials=100, shingle_size=5)
+# run_text('eol.txt', num_trials=100, shingle_size=3)
+# run_text('meta.txt', num_trials=100, shingle_size=3)
+# run_text('meta.txt', num_trials=100, shingle_size=5)
+run_text(filename='meta.txt', num_trials=100, shingle_size=3)
